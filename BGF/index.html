@@ -1,0 +1,1323 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bored Game Finder</title>
+	
+	<link rel="icon" href="BGFLogo.svg" sizes="any" type="image/svg+xml">
+	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+
+	<!--https://anseki.github.io/plain-modal/-->
+	<script src="https://cdn.jsdelivr.net/npm/plain-modal@1.0.34/plain-modal.min.js"></script>
+
+	<script src="https://unpkg.com/@popperjs/core@2"></script>
+	<script src="https://unpkg.com/tippy.js@6"></script>
+
+	<script src="games.js"></script>
+	<script src="like.js"></script>
+	
+    <style>
+        body {
+			background-image: url("random_grey_variations.png");
+			padding-top: 75px;
+            margin: 0;
+
+			font-family: "Montserrat", sans-serif;
+            background-color: #ffffff;
+			color: #1d1d1d;
+			background-blend-mode: luminosity, normal;
+        }
+
+		#games.collapse .box,
+		#main.collapse .gameHolder{
+			display:none;
+		}
+
+		#games.collapse .gameHolder{
+			height: auto;
+		}
+		
+		#games.collapse .name{
+			position:relative; top: 0; left: 0;
+			background: rgba(0, 0, 0, .35);
+			padding: 7px 15px;
+			border-radius: 20px;
+			color: white;
+			font-weight: 500;
+			margin: 5px 10px;
+			display: inline-block;
+		}
+
+        .box {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(0deg) rotateY(12deg);
+            transition: transform 0.5s;
+			margin: 25px;
+			box-shadow: 0 12px 10px rgba(0,0,0,.5);
+			cursor: pointer;
+        }
+
+        .box:hover {
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateX(-10px);
+        }
+		
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(0,0,0,.5);
+			background-size: cover;
+			border-radius: 3px;
+			background-image: inherit;
+        }
+
+		.front{
+			background-position: top;
+			box-shadow: inset 0 0px 2px 1px rgba(255, 255, 255, .15);
+		}
+
+        .left {
+            width: 25px;
+            height: 200px;
+            transform: rotateY(-90deg) translateZ(13px) translateX(-81px) scaleX(6);
+			filter: brightness(0.5);
+        }
+
+		.hidden{visibility: hidden;}
+
+		.box:hover .hidden{
+			visibility: visible;
+		}
+		
+		.score{
+			color: #27ae60;
+			position: absolute;
+			top: -2px;
+			right: 4px;
+			text-shadow: 0 2px 3px black;
+		}
+
+		.score:after{
+			color: white;
+			content: attr(score);
+			font-size: 16px;
+			position: absolute;
+			top: 14px;
+			right: 0px;
+			text-shadow: 0 2px black;
+			font-family: "Montserrat", sans-serif;
+			font-weight: 500;
+			width: 36px;
+			text-align: center;
+		} 
+		
+		.gameHolder{
+			height: 300px;
+			position: relative;
+		}
+		
+		.gameHolder .name {
+			color: white;
+			text-shadow: 0 0 3px black;
+		}
+		
+		.year{
+			position:absolute;bottom:5px;right:-5px;background:#1d1d1d;padding:4px 10px;border-radius: 3px;color:white; font-weight:bold;
+		}
+		
+		.rank{
+			position:absolute;bottom:5px;left:-3px;background:#1d1d1d;padding:4px 10px;border-radius: 3px;color:white; font-weight:bold;
+		}
+
+		.rank:before{
+			font-family: "Font Awesome 6 Free";
+			font-weight: 900; /* For solid icons */
+			content: "\f521";
+			color: #f39c12;
+			padding-right: 10px;
+		}
+		
+		.name{
+			position:absolute;width:200px;top:245px;left:15px;font-weight:bold;text-align:center; cursor:pointer;
+		}
+		
+		.like{
+			position: absolute;
+			top:5px;
+			left:5px;
+			color:#f39c12;
+		}
+		
+		.like .fa-solid.fa-star,
+		.like .fa-regular.fa-star{
+			display:none;
+			text-shadow: 0 0 3px black;
+		}
+
+		#games .box:hover .like .fa-solid.fa-star,
+		.box:hover .like .fa-regular.fa-star{
+			display:block;
+		}
+
+		#games .box:hover .like .fa-regular.fa-star,
+		#games .box .like:hover .fa-solid.fa-star,
+		.box .like:hover .fa-regular.fa-star{
+			display:none;
+		}
+
+		#games .box:hover .like:hover .fa-regular.fa-star,
+		.like:hover .fa-solid.fa-star{
+			display: block;
+		}
+		
+		.like:after{
+			content:attr(like);
+			color: white;
+			font-size: 16px;
+			position: absolute;
+			top: 0px;
+			text-shadow: 0 2px black;
+			font-family: "Montserrat", sans-serif;
+			font-weight: 500;
+			width: 36px;
+			text-align: center;
+			background: rgba(0,0,0,.5);
+			padding: 8px 0;
+			border-radius: 3px;
+		}
+		
+		.box:hover .like:after{
+			background: none;
+		}
+		
+		.like:not([like*="%"]):after,
+		#games .like:after{
+			display: none;
+		}
+
+		#header{
+			width:100%;
+			height: 75px;
+			background: #222;
+			box-shadow: 0 2px 5px rgba(0,0,0,.2);
+			position:fixed;
+			top:0;
+			z-index:1;
+			display:flex;
+            justify-content: center;
+            align-items: center;
+		}
+
+		#main{
+			width:100%;
+			display: flex;
+			flex-wrap: wrap;
+            justify-content: center;
+		}
+
+		#logo{
+			color: white;
+			font-family: 'permanent marker';
+			line-height: 18px;
+			font-size: 21px;
+			position: absolute;
+			left: 25px;
+			cursor: pointer;
+		}
+		
+		.tippy-box {
+		  white-space: pre-line;
+		}
+
+		input,
+		.search{
+			border: none;
+			width: 400px;
+			height: 35px;
+			border-radius: 5px;
+			padding-left: 35px;
+			font-family: 'Montserrat';
+			font-size: 14px;
+			font-weight: 550;
+			color: #333;
+		}
+
+		input:focus,
+		.search:focus {
+		  border: none;
+		  outline: none;
+		}		
+		
+		 .inputwrap {
+			position: relative;
+		  }
+
+		.inputwrap:before {
+			content: attr(icon);
+			font-family: "Font Awesome 6 Free";
+			font-weight: 900; /* For solid icons */
+			position: absolute;
+			left: 10px;
+			top: 50%;
+			transform: translateY(-50%);
+			color: #333;
+		}
+		
+		.inputwrap label {
+		  position: absolute;
+		  left: 35px;
+		  top: 50%;
+		  transform: translateY(-50%);
+		  transition: 0.2s ease all;
+		  pointer-events: none;
+
+			font-family: 'Montserrat';
+			font-size: 14px;
+			font-weight: 550;
+			color: #666;
+		}
+		
+		.inputwrap input:focus + label,
+		.inputwrap input:not(:placeholder-shown) + label {
+		  top: -8px;
+		  font-size: 0.75em;
+		  left: 35px;
+		  font-weight: 600;
+		  background: #222;
+		  padding: 0px 3px;
+		  border-radius: 3px;
+		  color: white;
+		  line-height: 1.5em;
+		}
+
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+		  -webkit-appearance: none;
+		  margin: 0;
+		}
+
+		/* Firefox */
+		input[type=number] {
+		  -moz-appearance: textfield;
+		}
+
+		#games,
+		#mechs,
+		#cats {
+			background: rgba(0, 0, 0, 0.3);
+			line-height: 30px;
+			text-align: left;
+			display: none;
+			position: relative; /* Needed for absolute ::after */
+			padding-right: 30px; /* Space for the close icon */
+			box-sizing: border-box;
+			margin-bottom: 2px;
+			padding-left: 35px;
+		}
+		
+		#games{
+			justify-content: center;
+			line-height: unset;
+//			display: flex;
+			flex-wrap: wrap;
+		}
+
+		  
+		#games:before,
+		#mechs:before,
+		#cats:before{
+			content: attr(name);
+			padding-left: 10px;
+			padding-right: 15px;
+			font-weight:500;
+			color: white;
+			font-family: "Font Awesome 6 Free";
+			font-weight: 900;
+			position: absolute;
+			left: 0;
+			top: 5px;
+		}
+		
+		#games::after,
+		#mechs::after,
+		#cats::after {
+			content: "\f1f8"; /* FontAwesome's circle-xmark */
+			font-family: "Font Awesome 6 Free";
+			font-weight: 900;
+			position: absolute;
+			right: 0px;
+			top: 0;
+			color: #999;
+			cursor: pointer;
+			font-size: 18px;
+			width: 30px;
+			height: 100%;
+			background: rgba(0,0,0, .35);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			
+		}
+
+		.tag{
+			background: rgba(0, 0, 0, .35);
+			padding: 0px 15px;
+			border-radius: 15px;
+			color: white;
+			font-weight: 500;
+			margin: 5px;
+			display: inline-block;
+		}
+		
+		.tag:hover{
+			background: #eee;
+			color: #333;
+			cursor:pointer;
+		}
+		
+		#howtoModal,
+		#userModal,
+		#infoModal,
+		#filterModal{
+			width: 60%;
+			max-height: 80%;
+			background-color: #222;
+			color: white;
+			box-shadow: 0 0 5px black;
+			line-height: 30px;
+			padding: 25px;
+			border-radius: 15px;
+			overflow-y: auto;
+			text-align: center;
+			position: relative;
+		}
+
+		#infoModal{
+			overflow-y: unset;
+		}
+
+		#infoModal .tag{
+			padding: 5px 15px;
+		}
+		
+		#infoModal .tag,
+		#filterModal .tag{
+			background: rgba(0,0,0,.35);
+		}
+		#infoModal .tag:hover,
+		#filterModal .tag:hover{
+			background: white;
+		}
+		
+		#infoMechs, #infoCats, #infoDesc{
+			padding: 15px 0;
+		}
+		
+		#infoName{
+			font-size: 32px;
+			font-weight: 700;
+			padding-top: 20px;
+			color: white;
+		}
+		
+		#infoDesc{
+			padding-bottom: 25px;
+			color: #DDD;
+		}
+		
+		.infoTitle{
+			width:100%;
+			color: white;
+			background-color: rgba(0,0,0,.25);
+			border-radius: 3px;
+			text-align: center;
+			padding: 5px;
+			font-weight: 700;
+		}
+		
+		#infoMechs,#infoCats{
+			text-align:center;
+		}
+
+		#infoPlayers,
+		#infoTime,
+		#infoAge,
+		#infoWeight{
+			position:relative;
+			padding: 5px 0;
+			color: white;
+		}
+		
+		#infoPlayers:before,
+		#infoTime:before,
+		#infoAge:before,
+		#infoWeight:before{
+			font-family: "Font Awesome 6 Free";
+			font-weight: 900; /* For solid icons */
+			position: absolute;
+			left:25px;
+			width:25px;
+			color: #CCC;
+		}
+
+		.infoIcon{
+			position:absolute;
+			left:15px;
+			top:6px;
+			opacity: .7;
+		}
+		
+
+		#infoPlayers:before{content:"\f0c0"}
+		#infoTime:before{content:"\f252"}
+		#infoAge:before{content:"\e4e1"}
+		#infoWeight:before{content:"\f24e"}
+
+		#infoPlayers:after{content:" Players"}
+		#infoTime:after{content:" Mins"}
+		#infoAge:after{content:"+ Years"}
+//		#infoWeight:after{content:" Complexity"}
+		
+		.userCancel,
+		#userLoad,
+		#infoLike,
+		#infoPrice,
+		#infoBGG,
+		#infoClose{
+			background: rgba(0, 0, 0, .35);
+			border-radius: 5px;
+			padding: 5px;
+			cursor: pointer;
+			margin: 10px 25px 0;
+			display: block;
+			position: relative;
+			left: -8px;
+			font-weight: 600;
+			color: #CCC;
+		}
+
+		#infoClose{
+			position:absolute;
+			left:-5px;
+			bottom: 0;
+			right: 10px;
+		}
+		
+		#infoLike{
+			background: #f39c12;
+			color: rgba(0,0,0,.65) !important;
+		}
+		
+		.plainmodal .plainmodal-overlay{
+			background-color: rgba(0,0,0,.6)
+		}
+		
+		.tippy-box{background-color: #111;}
+		.tippy-arrow{color:#111;}
+		
+		#toggle{
+			font-size: 16px;
+			position:absolute;
+			bottom: 14px;
+		}
+		
+		#mode{
+			font-size: 18px;
+			bottom: 6px;
+			position: relative;
+		}
+		
+		#howtoModal,
+		#userModal,
+		#filterModal {
+		  display: flex;
+		  flex-direction: column;
+		  align-items: center;
+		}
+		
+		#infoModal,
+		#howtoModal,
+		#filterModal{
+		  height: 100%;
+		}
+
+		#modalHeader {
+		  flex-shrink: 0;
+		  margin-bottom:15px;
+		}
+
+		#modalBodyCat,#modalBodyMec {
+		  flex: 1;
+		  overflow-y: auto; /* makes the tags scroll */
+		  min-height: 0; 
+		}
+
+		#modalFooter {
+		  flex-shrink: 0;
+		  text-align: center;
+		  cursor: pointer;
+		  width:50%;
+		  background:#111;
+		  margin-top:15px;
+		  font-size: 24px;
+		  font-weight: 600;
+		  padding: 10px 0;
+		  border-radius: 10px;
+		  cursor:pointer;
+		}
+
+		/* Hide Chrome's native clear "x" */
+		input[type="search"]::-webkit-search-cancel-button {
+		  -webkit-appearance: none;
+		  appearance: none;
+		}
+
+		/* Custom clear button */
+		.inputwrap .clear-btn {
+		  position: absolute;
+		  right: 10px;
+		  top: 50%;
+		  transform: translateY(-50%);
+		  font-size: 14px;
+		  color: #666;
+		  cursor: pointer;
+		  display: none;
+		}
+
+		.inputwrap input:not(:placeholder-shown) ~ .clear-btn {
+		  display: block; /* show only when input has text */
+		}		
+
+#sidebar {
+	width: 75px;              /* same thickness as header height */
+	background: #222;
+	position: fixed;
+	top: 75px;                /* sits just below the header */
+	left: 0;
+	height: calc(100% - 75px);
+	box-shadow: 2px 0 5px rgba(0,0,0,.2);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 10px;
+	z-index: 1;
+}
+.btn,
+.sidebtn {
+	width: 50px;
+	height: 50px;
+	background-color: #111;
+	font-size: 24px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 5px;
+	border-radius: 3px;
+	cursor: pointer;
+	opacity: .5;
+	color: #999;
+	position: relative;
+}
+
+.sidebtn.collapse,
+.btn.active,
+.sidebtn.active,
+.btn:hover,
+.sidebtn:hover {
+	opacity: 1;
+	color: white;
+}
+
+.sidebtn.collapse::after{
+	content: "\f070";
+	font-family: "Font Awesome 6 Free";
+	font-weight: 900;
+	position: absolute;
+	top: 35px;
+	font-size: 12px;
+	background-color: #111;
+	padding: 3px;
+	border: 2px solid #222;
+	border-radius: 6px;
+}
+
+.btn{
+	float:right;
+}
+
+#main,#mechs,#cats,#games {
+	margin-left: 75px;
+	width: calc(100% - 75px);
+	min-height: 30px;
+}
+
+		#btnholder{
+			position: absolute;
+			right:10px;
+		}
+
+h1{
+	background: rgba(0,0,0,.15);
+	width: 100%;
+	padding: 5px 0px;
+	border-radius: 5px;
+	font-size: 25px;
+}
+
+#blurb{
+	font-size: 15px;
+	line-height: 20px;
+	width: 65%;
+	background: rgba(0,0,0,.15);
+	padding: 20px;
+	border-radius: 10px;
+	margin-top: 35px;
+}
+
+    </style>
+</head>
+<body>
+<div id="header">
+	<div id="logo" onclick="howtoModal.open()">
+		Bored</br>
+		Game</br>
+		Finder
+	</div>
+
+	<span class="inputwrap" icon=""><input type="search" class="search" id="search" placeholder=" " oninput="filterGames()"> <span class="clear-btn" onclick="clearSearch('search')">✖</span></span>
+
+	<div id="btnholder">
+		<span id="SortBtns">
+			<div data-tippy-content="Sort by Favorite" class="btn" id="sortlike" sort="false" onclick="(selected.length?sortGames('like','false',this):userModal.open())"><i class="fa-solid fa-star"></i></div>
+			<div data-tippy-content="Sort by Weight" class="btn" id="sortweight" sort="false" onclick="sortGames('weight',this.getAttribute('sort'),this)"><i class="fa-solid fa-scale-balanced"></i></div>
+			<div data-tippy-content="Sort by Year" class="btn" id="sortyear" sort="false" onclick="sortGames('year',this.getAttribute('sort'),this)"><i class="fa-regular fa-calendar"></i></div>
+			<div data-tippy-content="Sort Alphabetically" class="btn" id="sortname" sort="true" onclick="sortGames('name',this.getAttribute('sort'),this)"><i class="fa-solid fa-font"></i></div>
+			<div data-tippy-content="Sort by Score" class="btn" id="sortscore" sort="false" onclick="sortGames('score',this.getAttribute('sort'),this)"><i class="fa-solid fa-bookmark"></i></div>
+			<div data-tippy-content="Sort by Rank" class="btn active" id="sortrank" sort="true" onclick="sortGames('rank',this.getAttribute('sort'),this)"><i class="fa-solid fa-crown"></i></div>
+		</span>
+	</div>
+</div>
+
+<div id="sidebar">
+	<div class="sidebtn" id="topBtn" data-tippy-content="Back to Top" onclick="window.scrollTo(0, 0)" style="display:none"><i class="fa-solid fa-caret-up"></i></div>
+	<div class="sidebtn" data-tippy-content="Filter by Tags" onclick="modal.open()"><i class="fa-solid fa-tag"></i></div>
+	<div class="sidebtn" data-tippy-content="Load BGG User Collection" onclick="userModal.open()"><i class="fa-solid fa-user-astronaut"></i></div>
+	<div class="sidebtn" data-tippy-content="Collapse Favorites" onclick="(selected.length ? (document.getElementById('games').classList.toggle('collapse'), this.classList.toggle('collapse')) : userModal.open())"><i onclick="" class="fa-solid fa-star"></i></div>
+	<div class="sidebtn" data-tippy-content="Show/Hide Games" onclick="document.getElementById('main').classList.toggle('collapse');this.classList.toggle('collapse')" ><i class="fa-solid fa-chess-board"></i></div>
+</div>
+
+<div id="mechs" name=""></div>
+<div id="cats" name=""></div>
+<div id="games" name=""></div>
+<div id="main"></div>
+
+<!-- -------------
+    Tags Modal
+-------------- -->
+
+<div id="filterModal">
+  <div id="modalHeader">
+    <span class="inputwrap" icon="">
+      <input type="search" class="search" id="searchTag"  placeholder=" " oninput="filterTags()">
+	  <span class="clear-btn" onclick="clearSearch('searchTag')">✖</span>
+    </span>
+  </div>
+
+  <h1>Mechanics</h1>
+  <div id="modalBodyMec"></div>
+
+  <h1>Categories</h1>
+  <div id="modalBodyCat"></div>
+
+  <div id="modalFooter" onclick="modal.close()">
+    Close
+  </div>
+</div>
+
+<!-- -------------
+ Game Info Modal
+-------------- -->
+
+<div id="infoModal">
+	<table>
+	<tbody>
+		<tr>
+			<td style="vertical-align:top; position: relative;">
+				<table style="text-align:center">
+				<tbody>
+					<tr><td id="infoBox"></td></tr>
+					<tr><td id="infoPlayers"></td></tr>
+					<tr><td id="infoTime"></td></tr>
+					<tr><td id="infoAge"></td></tr>
+					<tr><td id="infoWeight"></td></tr>
+					<tr><td id="infoBGG" onclick=""><i class="infoIcon fa-solid fa-chess-pawn"></i> Info on BGG</td></tr>
+					<tr><td id="infoPrice" onclick=""><i class="infoIcon fa-solid fa-magnifying-glass-dollar"></i> Compare Price</td></tr>
+					<tr><td id="infoLike" onclick=""><i class="infoIcon fa-regular fa-star"></i> Favorite</td></tr>
+					<tr><td id="infoClose" onclick="info.close()">Close</td></tr>
+				</tbody>
+				</table>
+			</td>
+			<td style="height: 750px; display: block; overflow-y:auto;">
+				<table>
+				<tbody>
+				<tr><td id="infoName"></td></tr>
+				<tr><td id="infoDesc"></td></tr>
+				<tr><td class="infoTitle">Mechanics</td></tr>
+				<tr><td id="infoMechs"></td></tr>
+				<tr><td class="infoTitle">Categories</td></tr>
+				<tr><td id="infoCats"></td></tr>
+				</tbody>
+				</table>
+			</td>
+		</tr>
+	</tbody>
+	</table>
+</div>
+
+<!-- -------------
+    Loading User Collection Modal
+-------------- -->
+
+<div id="userModal" style="width:auto;">
+	<div style="width: 100%"><h1 style="position: relative;top:-15px;">Load BGG User Collection</h1></div>
+	<div>
+		<span class="inputwrap" icon="" ><input style="width:300px;" id="loadUser" type="text" placeholder=" "/><label>BGG Username</label></span>
+		<span class="inputwrap" icon="" ><input style="width:120px;" id="minScore" type="number" min="0" max="10" placeholder=" "/><label>Min Score</label></span>
+	</div>
+	<div id="userLoad" style="width:50%;margin-top: 25px;"></div>
+	<div onclick="userModal.close()" class="userCancel" style="width:50%;margin-top: 10px;">Close</div>
+</div>
+
+<!-- -------------
+   About / HOWTO Modal
+-------------- -->
+
+<div id="howtoModal">
+	<div style="font-family: 'permanent marker'; font-size: 50px; color:white;"><img src="BGFLogo.svg" style="margin-right: 25px;width:50px;position:relative;top: 6px;"/>Bored Game Finder</div>
+	<div id="blurb"><b>Bored Game Finder is your shortcut to discovering new favorites.</b><br/>Start by starring the games you already know and love, the system will highlight suggestions with a similarity score, showing you which titles share mechanics, themes, or style. You can wander through the BGG Top 10,000 or load your own BoardGameGeek collection, turning your personal library into a springboard for new discoveries.
+<br/>
+<br/>
+<b>Explore the games and open them for details:</b></br>See basic information at a glance, or click through for a full description and filter for mechanics and categories. Use the top menu to sort results and the sidebar's quick tools to load, filter and manage your games.
+<br/>
+<br/>
+Refine your filters to hone in on specific styles, and keep adding favorites to sharpen your recommendations. The more you interact, the better the suggestions become, helping you cut through thousands of options and find the perfect game for you.</div>
+	<div id="howtoBox"></div>
+	<div onclick="howtoModal.close()" class="userCancel" style="width:50%;margin-top: 10px;">Close</div>
+</div>
+
+<!-- -------------
+   🔥 BGG HOT 50 🔥 Modal
+-------------- 
+
+<div id="hotModal">
+	
+</div>
+-->
+</body>
+
+<script>
+loadList   = Object.entries(games).sort((a, b) => parseFloat(a[1].rank) - parseFloat(b[1].rank)).map(entry => entry[0])
+loadIndex  = 100
+loadAmount = 100
+
+filterList  = loadList
+filterCats  = []
+filterMechs = []
+
+lastSort = "rank"
+likeList = []
+selected = []
+
+games["418011"] = {
+  "id": "418011",
+  "image": "https://cf.geekdo-images.com/MzdL8IcZxrwq4ZKCDUPcwg__original/img/OtfNGqFN56LLtJeH9yFtX7Ob5qw=/0x0/filters:format(jpeg)/pic8129458.jpg",
+  "name": "Arcane Acres",
+  "description": "Arcane Acres is a card-drafting and tetromino tile placement game for 1-4 Players.\n\nBecome a caretaker of the Sanctuary for Mythical Creatures to create the most harmonious habitat! Taking turns drafting the Creatures and expanding their Sanctuary, Players seek to shelter magical animals while shaping a perfect home for them to live in.\n\nThe goal of the game is to build an optimal Sanctuary and find Creatures that naturally work together to score points. At the end of the game, the Player with the most points wins.\n\n",
+  "year": "2024",
+  "minplayers": "1",
+  "maxplayers": "4",
+  "playingtime": "45",
+  "minplaytime": "20",
+  "maxplaytime": "45",
+  "minage": "10",
+  "categories": [
+    "Abstract Strategy",
+    "Animals",
+    "Fantasy",
+    "Puzzle"
+  ],
+  "mechanics": [
+    "End Game Bonuses",
+    "Matching",
+    "Open Drafting",
+    "Pattern Building",
+    "Set Collection",
+    "Solo / Solitaire Game",
+    "Tile Placement",
+    "Variable Set-up"
+  ],
+  "score": "7.5",
+  "rank": "∞",
+  "weight": "2.5",
+  "like": Math.random()
+}
+
+
+document.getElementById("logo").setAttribute("data-tippy-content","Designed by Lucas Moraes Abarca.\nLast Updated on "+LastUpdate+".\nClick here for more info.")
+
+tippy('#logo', {placement: 'right'})
+
+tippy('.btn');
+
+tippy('.sidebtn', {placement: 'right'})
+  
+colors = ["#2c3e50","#c0392b","#e74c3c","#d35400","#be2edd","#8e44ad","#4834d4","#2980b9","#27ae60","#16a085","#f39c12"]
+
+
+function containsAllElements(array1, array2) {
+    return array2.every(element => array1.includes(element));
+}
+
+//Generate Box Code
+function boxCode(id){
+			game = games[id]
+
+			newGameHolder = document.createElement("div")
+			newGameHolder.classList.add("gameHolder")
+			newGameHolder.id = id
+
+			newGameBox = document.createElement("div")
+			newGameBox.classList.add("box")
+			newGameBox.style = "background-image:url('"+game.image+"')"
+			newGameBox.innerHTML = "<div class='face front'></div><div class='face left'></div>"
+			newGameBox.innerHTML +='<i style="color:'+colors[Math.floor(game.score)]+'" score="'+Math.floor(game.score*10)/10+'" onclick="event.stopPropagation();window.open(\'https://boardgamegeek.com/boardgame/'+id+'\')" class="score fa-solid fa-bookmark fa-3x"></i><span class="year">'+game.year+'</span><span class="rank">'+game.rank+'</span><span class="like" '+(game.like?'like="'+Math.round(game.like*100)+'%"':'')+' onclick="addLike('+id+')"><i class="fa-solid fa-star fa-2x"></i><i class="fa-regular fa-star fa-2x"></i></span>'
+			newGameBox.setAttribute("onclick","showInfo("+id+")")
+
+			newNameTag = document.createElement("span")
+			newNameTag.classList.add("name")
+			newNameTag.innerHTML = game.name
+			newNameTag.setAttribute("onclick","showInfo("+id+")")
+
+			newGameHolder.append(newGameBox)
+			newGameHolder.append(newNameTag)
+			return newGameHolder
+}
+
+//Display Boxes on Main
+function displayBoxes(idArray){
+	idArray.forEach((id)=>{
+		if(!selected.includes(Number(id))){
+			document.getElementById("main").append(boxCode(id))
+		}
+	})
+}
+
+function showInfo(id){
+	document.getElementById("infoName").innerHTML = games[id].name
+	document.getElementById("infoDesc").innerHTML = games[id].description.replace(/&#10;/g, '</br>')
+
+	iBox = boxCode(id).getElementsByClassName("box")[0].cloneNode(true)
+	iBox.setAttribute("onclick","window.open('https://boardgamegeek.com/boardgame/"+id+"')")
+	document.getElementById("infoBox").innerHTML = ""
+	document.getElementById("infoBox").append(iBox)
+
+	document.getElementById("infoBGG").setAttribute("onclick","window.open('https://boardgamegeek.com/boardgame/"+id+"')")
+	document.getElementById("infoLike").setAttribute("onclick","addLike("+id+")")
+	document.getElementById("infoPrice").setAttribute("onclick","window.open('https://boardgameprices.com/item/search?search="+games[id].name+"')")
+
+
+	document.getElementById("infoPlayers").innerHTML = (games[id].minplayers==games[id].maxplayers?games[id].minplayers:games[id].minplayers+"-"+games[id].maxplayers)
+	document.getElementById("infoTime").innerHTML = games[id].minplaytime === games[id].maxplaytime ? games[id].playingtime : games[id].minplaytime + " - " + games[id].maxplaytime;
+	document.getElementById("infoAge").innerHTML = games[id].minage
+	document.getElementById("infoWeight").innerHTML = Math.floor(games[id].weight*10)/10
+	
+
+	document.getElementById("infoMechs").innerHTML = ""
+	document.getElementById("infoCats").innerHTML = ""
+	
+	games[id].mechanics.forEach((tag)=>{
+		newtag = document.createElement("span")
+		newtag.innerHTML = tag
+		newtag.classList.add("tag")
+		newtag.setAttribute("onclick","tagToggle(this.innerHTML)")
+		
+		document.getElementById('infoMechs').append(newtag)
+	})
+
+	games[id].categories.forEach((tag)=>{
+		newtag = document.createElement("span")
+		newtag.innerHTML = tag
+		newtag.classList.add("tag")
+		newtag.setAttribute("onclick","tagToggle(this.innerHTML)")
+		
+		document.getElementById('infoCats').append(newtag)
+	})
+	
+	info.open()
+}
+
+function clearMain(){
+	document.getElementById("main").innerHTML = ""
+	loadIndex = loadAmount
+}
+
+function clearSearch(s) {
+  const input = document.getElementById(s);
+  input.value = "";
+  input.focus();
+  input.dispatchEvent(new Event("input"));
+}
+
+function filterGames(){
+	filterList=[]
+
+	loadList.forEach(id=>{
+		if(games[id].name.toLowerCase().includes(document.getElementById("search").value.toLowerCase()) && containsAllElements(games[id].categories,filterCats) && containsAllElements(games[id].mechanics,filterMechs)){
+			filterList.push(id)
+		}
+	})
+	
+	//Same for Faves
+	Array.from(document.getElementById("games").getElementsByClassName("gameHolder")).forEach((game)=>{
+		id = game.id
+		if(games[id].name.toLowerCase().includes(document.getElementById("search").value.toLowerCase()) && containsAllElements(games[id].categories,filterCats) && containsAllElements(games[id].mechanics,filterMechs)){
+			game.style.display = ""
+		} else {
+			game.style.display = "none"
+		}
+	})
+
+	clearMain()
+	displayBoxes(filterList.slice(0,loadAmount))
+
+}
+
+function filterTags(){
+	Array.from(document.getElementById("filterModal").getElementsByClassName("tag")).forEach(tag=>{
+		if(tag.innerHTML.toLowerCase().includes(document.getElementById("searchTag").value.toLowerCase())){
+			tag.style.display = "inline-block"
+		}else{
+			tag.style.display = "none"
+		}
+	})
+}
+
+function tagToggle(tag){
+	if(cats.includes(tag)||mechs.includes(tag)){
+		if(cats.includes(tag)){
+			tagHolder = document.getElementById("cats")
+			if(filterCats.includes(tag)){filterCats.splice(filterCats.indexOf(tag),1)}else{filterCats.push(tag)}
+		}else{
+			tagHolder = document.getElementById("mechs")
+			if(filterMechs.includes(tag)){filterMechs.splice(filterMechs.indexOf(tag),1)}else{filterMechs.push(tag)}
+		}
+		
+		if(tagHolder.innerHTML.includes(tag)){
+			document.getElementsByClassName(tag.replace(/\s/g, ''))[0].remove()
+		}else{
+			newtag = document.createElement("span")
+			newtag.innerHTML = tag
+			newtag.classList.add("tag",tag.replace(/\s/g, ''))
+			newtag.setAttribute("onclick","tagToggle(this.innerHTML)")
+			
+			tagHolder.append(newtag)
+			tagHolder.style.display = "block"
+		}
+		
+		if(tagHolder.innerHTML==""){tagHolder.style.display = "none"}
+
+		filterGames()
+
+	}else{
+		alert(tag+" is not a valid tag")
+	}
+}
+
+function addLike(id){
+	if(event){event.stopPropagation();}
+
+	if(selected.includes(id)){
+		selected.splice(selected.indexOf(id),1)
+		calculateSimilarity(selected, games);
+
+		document.getElementById(id).remove()
+
+		if(document.getElementById("games").innerHTML==""){
+			document.getElementById("games").style.display = "none"
+			sortGames(lastSort,lastSort=="rank"?"true":"false",document.getElementById("sort"+lastSort))
+		} else {
+			sortGames("like","false",document.getElementById("sortlike"))
+		}
+
+	}else{
+		selected.push(id)
+		if(document.getElementById(id)){document.getElementById(id).getElementsByClassName("like")[0].setAttribute("like",'')}
+		document.getElementById("games").append(document.getElementById(id)?document.getElementById(id):boxCode(id))
+		document.getElementById("games").style.display = "flex"
+		
+		calculateSimilarity(selected, games);
+		sortGames("like","false",document.getElementById("sortlike"))
+	}
+
+	localStorage.setItem("games", JSON.stringify(selected));
+	
+}
+
+function sortGames(info,increase,button){
+	if(button.classList.contains("active") && info !="like") {
+		increase = button.getAttribute("sort")=="true"?"false":"true"
+		button.setAttribute("sort",increase)
+	}
+	
+	if(info!="like"){lastSort = info}
+	
+	if(increase == "true"){
+		loadList = Object.entries(games).sort((a, b) => (info=="name"?(a[1][info] < b[1][info]?-1:1):a[1][info] - b[1][info])).map(entry => entry[0])
+	}else{
+		loadList = Object.entries(games).sort((a, b) => (info=="name"?(b[1][info] < a[1][info]?-1:1):b[1][info] - a[1][info])).map(entry => entry[0])
+	}
+
+	Array.from(document.querySelectorAll("#games .gameHolder")).sort((a,b)=>{
+	  let A=games[a.id][info], B=games[b.id][info],
+		  nA=parseFloat(A), nB=parseFloat(B);
+	  return !isNaN(nA)&&!isNaN(nB)
+		? (increase==="true"?nA-nB:nB-nA)
+		: (increase==="true"?A.localeCompare(B):B.localeCompare(A));
+	}).forEach(el => document.getElementById("games").appendChild(el))
+
+
+	document.getElementById("header").getElementsByClassName("active")[0].setAttribute("class","btn")
+	button.setAttribute("class","btn active")
+
+	filterGames()
+}
+
+function fetchUntilComplete(url) {
+  fetch(url)
+    .then(response => {
+      // Check the status code of the response
+      if (response.status === 202) {
+        console.log('Status 202, retrying...');
+        // If status is 202, retry after a delay
+        setTimeout(() => fetchUntilComplete(url), 1000); // Retry after 1 second
+      } else if (response.status === 200) {
+        // Convert response to text
+        return response.text();
+      } else {
+        // Handle other status codes if necessary
+        throw new Error(`Unexpected status: ${response.status}`);
+      }
+    })
+    .then(data => {
+      if (data) {
+        // Parse XML to JavaScript Object
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data, 'text/xml');
+        
+		if(xml.querySelectorAll('[subtype="boardgame"]').length){
+			xml.querySelectorAll('[subtype="boardgame"]').forEach(x=>{
+				if(Object.keys(games).includes(x.getAttribute("objectid")) && !(selected.includes(Number(x.getAttribute("objectid"))))){
+					id = Number(x.getAttribute("objectid"))
+					
+					games[id]["like"] = ''
+								
+					selected.push(id)
+					document.getElementById("games").append(boxCode(id))
+					
+				}
+			})
+			
+			localStorage.setItem("games", JSON.stringify(selected));
+			userModal.close()
+			calculateSimilarity(selected, games);
+			document.getElementById("games").style.display = "flex"
+			sortGames("like","false",document.getElementById("sortlike"))
+		} else {
+			alert("User Collection is Empty")
+			userModal.close()
+		}
+      }
+    })
+    .catch(error => {
+		console.error('Error:', error);
+		alert('Failed to Retrieve Data');
+		userModal.close()
+	});
+}
+
+function loadUser(){
+	if(!document.getElementById("loadUser").value) document.getElementById("loadUser").value = "Playce_FFM"
+
+	let user = document.getElementById("loadUser").value
+	let minrating = parseFloat(document.getElementById("minScore").value)
+	
+	if (isNaN(minrating)) {minrating = 0; document.getElementById("minScore").value = 0}
+
+	if (user){
+		document.getElementById("userLoad").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Loading'
+		document.getElementById("userLoad").setAttribute("onclick","");
+		fetchUntilComplete('https://boardgamegeek.com/xmlapi2/collection?username='+user+'&minrating='+minrating);
+	}
+}
+
+
+//Load at end of page
+window.addEventListener('scroll', function() {
+    if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+		if(filterList.length>loadIndex && !document.getElementById('main').classList.contains("collapse")){
+			displayBoxes(filterList.slice(loadIndex,loadIndex+loadAmount))
+			loadIndex += loadAmount
+		}
+    }
+	
+	//loads/hide top btn
+	const btn = document.getElementById('topBtn');
+	btn.style.display = (window.scrollY > 0 ? 'flex' : 'none');
+});
+
+//Cancel | Clear Buttons
+document.querySelectorAll('#games, #mechs, #cats').forEach(div => {
+	div.addEventListener('click', e => {
+		const rect = div.getBoundingClientRect();
+		const clickedInsideX = e.clientX >= rect.right - 30 && e.clientX <= rect.right;
+		if (clickedInsideX) {
+			switch (div.id) {
+				case 'games':
+					selected = [];
+					calculateSimilarity(selected, games);
+					sortGames(lastSort,lastSort=="rank"?"true":"false",document.getElementById("sort"+lastSort))
+					localStorage.setItem("games", JSON.stringify(selected));
+					break;
+				case 'mechs':
+					filterMechs = [];
+					break;
+				case 'cats':
+					filterCats = [];
+					break;
+			}
+			div.innerHTML = ""
+			div.style.display = "none"
+			filterGames()
+		}
+	});
+});
+
+//SET UP TAG FILTER MODAL
+
+var modal = new PlainModal(document.getElementById('filterModal'));
+
+mechs.sort();
+cats.sort();
+
+mechs.forEach((tag)=>{
+  let newtag = document.createElement("span");
+  newtag.innerHTML = tag;
+  newtag.classList.add("tag");
+  newtag.setAttribute("onclick","tagToggle(this.innerHTML)");
+  document.getElementById('modalBodyMec').append(newtag);
+});
+
+cats.forEach((tag)=>{
+  let newtag = document.createElement("span");
+  newtag.innerHTML = tag;
+  newtag.classList.add("tag");
+  newtag.setAttribute("onclick","tagToggle(this.innerHTML)");
+  document.getElementById('modalBodyCat').append(newtag);
+});
+
+//SET UP GAME INFO MODAL
+
+var info = new PlainModal(document.getElementById('infoModal'));
+
+//SET UP LOAD USER MODAL
+
+var userModal = new PlainModal(document.getElementById('userModal'));
+
+userModal.onOpen = () => {
+	document.getElementById("userLoad").innerHTML = "Load Collection";
+	document.getElementById("userLoad").setAttribute("onclick","loadUser()");
+};
+
+document.querySelectorAll("#loadUser, #minScore").forEach(input => {
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      loadUser();
+    }
+  });
+});
+
+//SET UP HOW TO MODAL
+
+var howtoModal = new PlainModal(document.getElementById('howtoModal'));
+aaBox = boxCode("418011")
+aaBox.removeAttribute('id')
+aaBox.getElementsByClassName("name")[0].remove()
+aaBox.getElementsByClassName("like")[0].setAttribute("onclick","")
+
+//data-tippy-content
+aaBox.getElementsByClassName("like")[0].setAttribute("data-tippy-content","Similarity Score:\nHow similar this game is\ncompared to your favorites.\nClick to add/remove Favorite")
+aaBox.getElementsByClassName("score")[0].setAttribute("data-tippy-content","BGG Score\nClick to open the game's BGG page")
+aaBox.getElementsByClassName("rank")[0].setAttribute("data-tippy-content","BGG's Rank")
+aaBox.getElementsByClassName("year")[0].setAttribute("data-tippy-content","Release Year")
+aaBox.getElementsByClassName("box")[0].setAttribute("data-tippy-content","Click on the box to view more details about the game, like Mechanics and Categories")
+
+document.getElementById("howtoBox").append(aaBox)
+
+tl = tippy([aaBox.getElementsByClassName("like")[0],aaBox.getElementsByClassName("rank")[0]],{placement: 'left',trigger: 'manual',       // disable default triggers
+  showOnCreate: true,      // show immediately
+  appendTo: () => document.getElementById("howtoModal"),
+  hideOnClick: false})
+tr = tippy([aaBox.getElementsByClassName("year")[0],aaBox.getElementsByClassName("score")[0]],{placement: 'right',trigger: 'manual',       // disable default triggers
+  showOnCreate: true,      // show immediately
+  appendTo: () => document.getElementById("howtoModal"),
+  hideOnClick: false})
+tb = tippy(aaBox.getElementsByClassName("box")[0],{placement: 'bottom',trigger: 'manual',       // disable default triggers
+  showOnCreate: true,      // show immediately
+  appendTo: () => document.getElementById("howtoModal"),
+  hideOnClick: false})
+
+tl[0].setProps({offset: [50, 20]})
+tb.setProps({offset: [0,20]})
+
+howtoModal.onOpen = () => {
+	tl[0].popperInstance.update();
+	tl[1].popperInstance.update();
+	tr[0].popperInstance.update();
+	tr[1].popperInstance.update();
+	tb.popperInstance.update();
+}
+
+//howtoModal.open()
+
+//Load Last Faves
+JSON.parse(localStorage.getItem("games") || "[]").forEach(x=>{
+	id = Number(x)
+	if(Object.keys(games).includes(id.toString()) && !(selected.includes(id))){
+		
+		selected.push(id)
+		document.getElementById("games").append(boxCode(id))
+		
+	}
+})
+if(selected.length){
+	calculateSimilarity(selected, games);
+	document.getElementById("games").style.display = "flex"
+	sortGames("like","false",document.getElementById("sortlike"))
+}
+
+
+// Load Page
+displayBoxes(loadList.slice(0,loadAmount))
+
+</script>
+
+
+</html>

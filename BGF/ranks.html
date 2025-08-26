@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load BGG TOP 10k</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+	
+<style>
+   body {
+	font-family: "Montserrat", sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+	flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #f4f4f4;
+	background-image: url("https://www.toptal.com/designers/subtlepatterns/uploads/bright_squares.png");
+			
+	color: white;
+    font-size: 18px;
+    font-weight: bold;
+
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none; /* no underline */
+  }
+  
+  #intro{
+    justify-content: center;
+    align-items: center;
+	text-align: center;
+  }
+
+  #csvFile {
+    display: none;
+  }
+
+  .upload-btn,#download {
+    padding: 12px 20px;
+	margin-bottom: 35px;
+    background-color: #666;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+	border: 2px solid #333;
+    box-shadow: 0 10px 0 #333;
+  }
+
+  .upload-btn:hover, #download:hover {
+    background-color: #333;
+	border-color: #111;
+    box-shadow: 0 10px 0 #111;
+  }
+  
+  #loadbar{
+	width: 60vw;
+	height: 7vh;
+	background: #ecf0f1;
+	border-radius: 10px;
+	border: 2px solid #bdc3c7;
+	padding: 2px;
+	position: relative;
+	display:none;
+  }
+  
+ #loaded {
+  width: 0%;
+  height: 100%;
+  background: #3498db;
+  border-radius: 7px;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;    /* horizontal */
+  align-items: center;        /* vertical */
+  text-align: center;
+}
+  
+</style>
+	
+</head>
+<body>
+	
+	<div id="intro">
+		<a href='https://boardgamegeek.com/data_dumps/bg_ranks' target="_blank"><div id="download">🔗 Download Ranks</div></a>
+		<label for="csvFile" class="upload-btn">📂 Load CSV</label>
+		<input type="file" id="csvFile" accept=".csv">
+	</div>
+	
+	<div id="loadbar">
+		<div id="loaded">0%</div>
+	</div>
+
+	
+	
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+		GameIds = []
+		games = {}
+		TotalGames = 10000
+		
+		delay = 1000
+		
+		function UpdateLoading(){
+			loaded = 100*Object.keys(games).length/GameIds.length
+			document.getElementById("loaded").style.width = loaded + "%"
+			document.getElementById("loaded").innerHTML = loaded + "%"
+		}
+		
+        function loadCSV() {
+			document.getElementById("intro").style.display = "none"
+			document.getElementById("loadbar").style.display = "block"
+            const fileInput = document.getElementById("csvFile");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a CSV file first.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const csvData = event.target.result;
+
+                const jsonData = Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    preview: TotalGames   // Read only the first 10000 rows
+                });
+
+				StartTime = new Date
+				GameIds  = jsonData.data.map(item => item.id);
+				fetchAllGames()
+            };
+
+            reader.readAsText(file);
+			
+        }
+
+		document.getElementById('csvFile').addEventListener('change', function(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				const csvContent = e.target.result;
+				loadCSV(csvContent); // your custom processing function
+			};
+			reader.readAsText(file);
+		});
+		
+		function save20xml(start){
+			url = "https://boardgamegeek.com/xmlapi2/thing?id="+ (GameIds.slice(start,start+20).join()) +"&stats=1"
+			console.log(url)
+			
+			fetch(url)  
+			  .then(response => response.text())
+			  .then(data => {
+				const parser = new DOMParser();
+				const xml = parser.parseFromString(data, 'text/xml');
+
+				Array.from(xml.getElementsByTagName('item')).forEach(item => {
+					const game = {
+						id: item.getAttribute('id'),
+						image: item.getElementsByTagName('image')[0]?.textContent || "No image",
+						name: item.getElementsByTagName('name')[0]?.getAttribute('value') || "Unknown",
+						description: item.getElementsByTagName('description')[0]?.textContent || "No description",
+						year: item.getElementsByTagName('yearpublished')[0]?.getAttribute('value') || "N/A",
+						minplayers: item.getElementsByTagName('minplayers')[0]?.getAttribute('value') || "N/A",
+						maxplayers: item.getElementsByTagName('maxplayers')[0]?.getAttribute('value') || "N/A",
+						playingtime: item.getElementsByTagName('playingtime')[0]?.getAttribute('value') || "N/A",
+						minplaytime: item.getElementsByTagName('minplaytime')[0]?.getAttribute('value') || "N/A",
+						maxplaytime: item.getElementsByTagName('maxplaytime')[0]?.getAttribute('value') || "N/A",
+						minage: item.getElementsByTagName('minage')[0]?.getAttribute('value') || "N/A",
+						categories: Array.from(item.getElementsByTagName('link'))
+							.filter(link => link.getAttribute('type') === 'boardgamecategory')
+							.map(cat => cat.getAttribute('value')) || [],
+
+						mechanics: Array.from(item.getElementsByTagName('link'))
+							.filter(link => link.getAttribute('type') === 'boardgamemechanic')
+							.map(mech => mech.getAttribute('value')) || [],
+						score: item.getElementsByTagName('average')[0]?.getAttribute('value') || "N/A",
+						rank: item.getElementsByTagName('rank')[0]?.getAttribute('value') || "N/A",
+						weight: item.getElementsByTagName('averageweight')[0]?.getAttribute('value') || "N/A"
+					};
+					
+					games[game.id] = game;
+				});
+				
+//				delay = Math.max(100,delay*.9)
+				UpdateLoading();
+				if (Object.keys(games).length == GameIds.length) {EndTime = new Date;saveGamesAsJS();}
+				
+			  })
+			  .catch(error => {
+					console.error('Error fetching the XML:', error);
+
+//					setTimeout(() => save20xml(start), delay*10);
+//					delay = Math.min(2000,delay*2)
+
+					setTimeout(() => save20xml(start), 10000);
+				});
+		}
+
+		async function fetchAllGames() {
+			for (let i = 0; i < GameIds.length; i += 20) {
+				save20xml(i);  // Fetch a batch of 20 games
+				console.log(`Requested games ${i} to ${i + 19}`);
+
+//				delay -= 100
+//				await new Promise(resolve => setTimeout(resolve, delay));  // Wait 1 second
+
+				await new Promise(resolve => setTimeout(resolve, 1500));  // Wait 1 second
+			}
+		}
+
+		function saveGamesAsJS() {
+			SaveTime = new Date().toLocaleDateString('en-GB')
+			ElapsedTime = Math.floor((EndTime - StartTime) / 1000)
+			
+			document.body.innerHTML += ("<div style='margin-top:35px;color: #333'>Download Complete. "+ TotalGames +" Games Loaded. Elapsed Time: "+ElapsedTime+"s</div>")
+			
+			const content = "const games = " + JSON.stringify(games, null, 2) + ";\nmechs = [...new Set(Object.values(games).flatMap(g => g.mechanics))];\ncats  = [...new Set(Object.values(games).flatMap(g => g.categories))];\nLastUpdate = '" + SaveTime + "'\nElapsedTime = " + ElapsedTime;
+			const blob = new Blob([content], { type: "application/javascript" });
+			const url = URL.createObjectURL(blob);
+
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "games.js";
+			a.click();
+
+			URL.revokeObjectURL(url); // Clean up
+		}
+
+    </script>
+
+</body>
+</html>

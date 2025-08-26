@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="author" content="Lucas Abarca">
+  <meta name="description" content="Neural Network Evolution Simulator">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="icon" href="logo.svg" sizes="any" type="image/svg+xml">
+
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" integrity="sha512-csNcFYJniKjJxRWRV1R7fvnXrycHP6qDR21mgz1ZP55xY5d+aHLfo9/FcGDQLfn2IfngbAHd8LdfsagcCqgTcQ==" crossorigin = "anonymous" referrerpolicy = "no-referrer"> </script>
+  <script src="cytoscape.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Eczar:wght@800&family=Fredoka+One&display=swap" rel="stylesheet">
+
+<script>
+
+</script>
+
+	<style>
+		
+		body{
+			background-color: #3498db;
+			text-align:center;
+			background-image: url("water.png");
+			transition-duration: 1500ms;
+			background-blend-mode: color-burn;
+			font-family: "Fredoka One";
+			color: #ecf0f1;
+		
+			animation: wavedark 50s infinite;
+			user-select:none;
+		}
+		
+		@keyframes wavedark {
+		  0%,66% {
+			background-position-X: 0;
+		  }
+		  33%,100% {
+			background-position-X: 134px;
+		  }
+		  
+		  0%,50%,100% {
+			background-position-Y: 0;
+		  }
+		  25%,75% {
+			background-position-Y: -50px;
+		  }
+		}
+		
+		#water{
+			width:100%;
+			height: 100%;
+			display: inline-block;
+			position: absolute;
+			top:0;
+			left:0;
+			background-image: url("water.png");
+			transform: rotate(180deg);
+			opacity: .15;
+			animation: wavelight 120s infinite;
+		}
+
+		@keyframes wavelight {
+		  0%,66% {
+			background-position-Y: 0;
+		  }
+		  33%,100% {
+			background-position-Y: 134px;
+		  }
+		  
+		  0%,50%,100% {
+			background-position-X: 0;
+		  }
+		  25%,75% {
+			background-position-X: -50px;
+		  }
+		}
+		
+		#intro{
+			width:100%;
+			height: 100%;
+			display: inline-block;
+			position: absolute;
+			top:0;
+			left:0;
+			text-align: center;
+			transition-duration: 1s;
+		}
+		
+		#nameholder,#name{
+			position: relative;
+			font-size: 90px;
+			font-family: Eczar;
+			top:300px;
+		}
+		
+		#nameholder span, #name span{
+			--s: #394350;
+			--h: #dde0e1;
+			position: relative;
+			display: inline-block;
+			color: #ddd;
+			animation: seawave 13s infinite;
+			animation-delay: calc(1s * var(--i));
+			min-width: 30px;
+			padding: 2px;
+			text-shadow: 0 -2px 1px #ffffff, 0 2px var(--s), 0 4px var(--s), 0 6px var(--s), 0 8px var(--s), 0 12px var(--s), 0 10px var(--s),0 4px 4px var(--h), 0 8px 4px var(--h), 0 12px 4px var(--h), 0 20px 20px #1d4064, 0 16px 20px #1d4064, 0 20px 10px #1d4064;
+		}
+		
+		#nameholder:after{
+			font-family: "Fredoka One";
+			content:"Neural Network Evolution Simulator";
+			font-size: 25px;
+			display:block;
+			text-shadow: 0 0 3px black;
+		}
+		
+		#name{
+			position:fixed;
+			width:100%;
+			top:-45px;
+			left:0;
+			transform: scale(.25);
+			cursor: pointer;
+		}
+		
+		#name:hover:after{
+			content:"✏️";
+			position:absolute;
+			font-size:50%;
+			top:40px;
+			padding-left:40px;
+		}
+		
+		.button {
+			border: none;
+			text-align:center;
+			cursor: pointer;
+			padding: 25px 80px;
+			margin: 25px 30px;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			background-color:rgba(255, 255, 255, 0.35);
+			border: solid 1px transparent;
+			border-radius:10px;
+			-webkit-font-smoothing: antialiased;
+			position: relative;
+			top: 300px;
+		  transition-duration: 0.4s;
+		}
+
+		.button:hover {
+		  transition-duration: 0.1s;
+		  background-color: rgba(255,255,255,.45);
+		}
+
+		.button:after {
+		  content: "";
+		  display: block;
+		  position: absolute;
+		  border-radius: 10px;
+		  left: 0;
+		  top:0;
+		  width: 100%;
+		  height: 100%;
+		  opacity: 0;
+		  transition: all 0.5s;
+		  box-shadow: 0 0 10px 40px white;
+		}
+
+		.button:active:after {
+		  box-shadow: 0 0 0 0 white;
+		  opacity: 1;
+		  transition: 0s;
+		}
+
+		
+		@keyframes seawave {
+		  100% {
+
+		  }
+		  50% {
+			transform: translateY(-10px)
+		  }
+		}
+
+		.crit{
+			width: 100%;
+			line-height: 100%;
+			height: 100%;
+			top: 5%;
+			left:0;
+		}
+		
+		.signal{
+			font-family:'FontAwesome';
+			width: 100%;
+			font-size: 200%;
+			color: rgba(255,255,255,.5);
+			top: -100%;
+			left: -80%;
+			opacity: 0.5;
+		}
+		
+		span{
+			position: absolute;
+//			transition-duration: 500ms;
+		}
+		
+		.crit:hover::after{
+			font-size:50%;
+			display:block;
+			position:absolute;
+			content: attr(id);
+		}
+		
+		particle {
+			position: fixed;
+			top: 0;
+			left: 0;
+			opacity: 0;
+			pointer-events: none;
+			background-repeat: no-repeat;
+			background-size: contain;
+		}
+		
+		#world{
+			position: absolute;
+		}
+		
+		
+		#about{
+			display: none;
+			width: 50%;
+			height: 100%;
+			background-color: #2c3e50;
+			position:absolute;
+			top:0%;
+			left:25%;
+			border-radius: 10px;
+			padding: 35px;
+			font-size: 24px;
+			line-height:150%;
+			z-index: 1;
+		}
+		
+		#playBtn,#saveBtn{
+			font-size: 24px;
+			width: 50px;
+			height: 50px;
+			background-color: rgba(255,255,255,.35);
+			position: fixed;
+			bottom: 5px;
+			right: 5px;
+			border-radius: 5px;
+		}
+	
+		#saveBtn{
+			bottom: 5px;
+			right: 55px
+		}
+		
+		#dataDisplay{
+//			width: 300px;
+			background-color: #111;
+			border-radius: 5px;
+		}
+	</style>
+</head>
+
+<body>
+<span id="water"></span>
+<span id="world"></span>
+<span id="controll">
+	<span id="name" onclick="Rename()"></span>
+</span>
+<span id="intro">
+	<span id="nameholder"></span>
+	<span id="about">Hello there! Welcome to the world of New Roceania! This world is inhabited by neural-network based organisms called Creatures!</p>
+For some people, Creatures are entertainment, others use them for chilling. Maybe, you can use them to study Evolution.</p>
+In this world, these Creatures are born with random genectics dictating their physical characteristics and behaviors, and they interact with the environment and eachother, trying to find food and stay alive.</p>
+With each new generation, they'll learn to adapt their behavior and improve their survival chance.</p>
+Creatures better adapted at finding food, avoiding attacks and conserving energy will have a greater chance of reproducing and passing on their genes into the next generation.</p>
+Run this simulator, sit back and watch these Creatures evolve in real time. A world of surprise with Creatures awaits! Let's go!</span>
+	<span class="button" onclick="Start()">start</span>
+</span>
+
+<table id="dataDisplay" style="display:none">
+<tbody>
+<tr id="dataEnergy">
+<td>⚡</td>
+<td style="min-width:150px">&nbsp;</td>
+<td></td>
+</tr>
+<tr id="dataFood">
+<td>🌱</td>
+<td>&nbsp;</td>
+<td>🍖</td>
+</tr>
+<tr id="dataEgg">
+<td>🥚</td>
+<td>&nbsp;</td>
+<td></td>
+</tr>
+<tr id="dataSpeed">
+<td>🏃</td>
+<td>&nbsp;</td>
+<td></td>
+</tr>
+<tr id="dataGen">
+<td>📏</td>
+<td>&nbsp;</td>
+<td>⌛</td>
+</tr>
+<tr id="dataDNA">
+<td>🧬</td>
+<td style="overflow:hidden;max-width:150px;"></td>
+<td>💾</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+
+<script>
+//*****************
+// SUPPORT FUNCTIONS
+//*****************
+
+const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+function valHex(hexString){
+	return parseInt(hexString, 16);
+}
+
+function closestAngle(from, to){
+ return (from + ((((to - from) % 360) + 540) % 360) - 180);
+ }
+
+function calcAngleDegrees(x, y) {
+  return Math.atan2(y, x) * 180 / Math.PI;
+}
+
+String.prototype.replaceAt = function(index, replacement) {
+    return this.substring(0, index) + replacement + this.substring(index + replacement.length);
+}
+
+//*****************
+// MY SUPPORT "FUNCTIONS"
+//*****************
+
+displayID = ""
+
+function displayData(ID){
+	if(World.Crit[ID] == undefined){
+		displayID = ""
+		document.getElementById("dataDisplay").style.display = "none"
+	} else {
+		critData = World.Crit[ID]
+		dataTable = document.getElementById("dataDisplay")
+		
+		dataTable.style = "display: block; position: absolute; left:"+(document.getElementById(ID).getBoundingClientRect().left+window.scrollX + 40)+"px; top: "+(document.getElementById(ID).getBoundingClientRect().top+window.scrollY + 30)+"px;"
+		
+		document.getElementById("dataEnergy").getElementsByTagName("td")[2].innerHTML = Math.floor(critData.Energy[1])
+		document.getElementById("dataEnergy").getElementsByTagName("td")[1].innerHTML = "<div style='background-color: yellow; height: 15px; border-radius: 3px; width:"+(critData.Energy[0]*100/critData.Energy[1])+"%'></div>"
+
+		document.getElementById("dataEgg").getElementsByTagName("td")[2].innerHTML = Math.floor(critData.Split[1])
+		document.getElementById("dataEgg").getElementsByTagName("td")[1].innerHTML = "<div style='background-color: purple; height: 15px; border-radius: 3px; width:"+(critData.Split[0]*100/critData.Split[1])+"%'></div>"
+
+		document.getElementById("dataSpeed").getElementsByTagName("td")[2].innerHTML = Math.floor(critData.Speed[1]*10)/10
+		document.getElementById("dataSpeed").getElementsByTagName("td")[1].innerHTML = "<div style='background-color: blue; height: 15px; border-radius: 3px; width:"+(critData.Speed[0]*100/critData.Speed[1])+"%'></div>"
+
+		document.getElementById("dataFood").getElementsByTagName("td")[1].innerHTML  = "<div style='display:inline-block;background-color: green; height: 15px; border-radius: 3px; width:"+((1-critData.Diet)*100)+"%'></div>"
+		document.getElementById("dataFood").getElementsByTagName("td")[1].innerHTML += "<div style='display:inline-block;background-color: red; height: 15px; border-radius: 3px; width:"+((critData.Diet)*100)+"%'></div>"
+	//	document.getElementById("dataFood").getElementsByTagName("td")[1].innerHTML += Math.floor(critData.Diet*100)
+
+		document.getElementById("dataGen").getElementsByTagName("td")[1].innerHTML = "<div style='display:inline-block;width:50%;text-align:center;'>"+(Math.floor(critData.Size*10)/10)+"</div><div style='display:inline-block;width:50%;text-align:center;'>"+(critData.Generation)+"</div>"
+	//	document.getElementById("dataGen").getElementsByTagName("td")[1].innerHTML = "<div style='display:inline-block;width:50%;text-align:center;'></div><div style='display:inline-block;width:50%;text-align:center;'></div>"Math.floor(critData.Size*10)/10 + " | " + critData.Generation
+
+		document.getElementById("dataDNA").getElementsByTagName("td")[1].innerHTML = critData.DNA
+	}
+
+}
+
+function AngleTo(a,b){
+	return calcAngleDegrees(b.X-a.X,b.Y-a.Y)
+}
+
+function DistanceTo(a,b){
+//	if (a==undefined || b==undefined) {console.log(a.ID+" | "+b.ID)}
+	return ((b.Y-a.Y)**2+(b.X-a.X)**2)**(1/2) - (b.Size+a.Size)*unit/2
+}
+
+function Squash(Type,x){
+	switch(Type) {
+	  case 0: // [SIG] Logistic Sigmoid		(0	-> 1)
+		return 1 / (1 + Math.exp(-x))
+	  case 1: // [HTAN] Hyperbolic Tangent	(-1 -> 1)
+		return Math.tanh(x)
+	  case 2: // [GAU] Gaussian
+		return Math.exp((-1)*(x**2))
+	  case 3: // [STEP] Hard Limit
+		return ((x>=0)?1:0)
+	  case 4: // [SIN] Sinus
+		return (( Infinity == Math.abs(x) )?0:Math.sin(x))
+	  case 5: // [SQR] Square
+		return x**2
+	  case 6: // [LIN] Identity
+		return x
+	  default:// [RELU] Reluctant
+		return Math.max(0,x)
+	}
+}
+
+//*****************
+// LOAD and SAVE
+//*****************
+
+function load(){
+	clearTimeout(running)
+	running = 0
+	World = JSON.parse(window.localStorage.getItem("world"))
+	document.getElementById("world").innerHTML = (window.localStorage.getItem("field"))
+	Rename(window.localStorage.getItem("name"))
+	RunWorld()
+}
+
+function save(){
+	window.localStorage.setItem("world",JSON.stringify(World))
+	window.localStorage.setItem("field",document.getElementById("world").innerHTML)
+	window.localStorage.setItem("name",NewroName)
+}
+
+function loadFromFile() {
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt'; // Restrict to text files
+    fileInput.style.display = 'none';
+
+    // Add an event listener to handle file selection
+    fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0]; // Get the selected file
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result; // The file content
+				clearTimeout(running)
+				running = 0
+				saveText = JSON.parse(content)
+				World = JSON.parse(saveText["world"])
+				document.getElementById("world").innerHTML = saveText["field"]
+				Rename(saveText["name"])
+				RunWorld()
+            };
+
+            reader.onerror = function(e) {
+                console.error("An error occurred reading the file", e);
+            };
+
+            reader.readAsText(file); // Read the file as text
+        } else {
+            console.log("No file selected");
+        }
+
+        // Remove the file input element after the file is selected
+        document.body.removeChild(fileInput);
+    });
+
+    // Add the input element to the document
+    document.body.appendChild(fileInput);
+
+    // Trigger the file input click event to open the file dialog
+    fileInput.click();
+}
+
+function saveToFile(){
+
+	var saveText = {
+		world: JSON.stringify(World),
+		field: document.getElementById("world").innerHTML,
+		name: NewroName
+	}
+
+	var blob = new Blob([JSON.stringify(saveText)], {
+            type: "text/plain;charset=utf-8",
+	 });
+
+	saveAs(blob,NewroName+".txt")
+}
+
+function saveDNA(sDNA){
+	var blob = new Blob([sDNA], {
+            type: "text/plain;charset=utf-8",
+	 });
+
+	saveAs(blob,"DNA("+sDNA+").txt")
+}
+
+function createFromFile(){
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt'; // Restrict to text files
+    fileInput.style.display = 'none';
+
+    // Add an event listener to handle file selection
+    fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0]; // Get the selected file
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result; // The file content
+				
+				Spawn("Crit",{DNA:content})
+            };
+
+            reader.onerror = function(e) {
+                console.error("An error occurred reading the file", e);
+            };
+
+            reader.readAsText(file); // Read the file as text
+        } else {
+            console.log("No file selected");
+        }
+
+        // Remove the file input element after the file is selected
+        document.body.removeChild(fileInput);
+    });
+
+    // Add the input element to the document
+    document.body.appendChild(fileInput);
+
+    // Trigger the file input click event to open the file dialog
+    fileInput.click();
+}
+
+function createFromDNA(){
+	sDNA = prompt("Enter DNA","")
+	if(sDNA != null){
+		Spawn("Crit",{DNA:sDNA})
+	}
+}
+
+//*****************
+// CONSTANTS
+//*****************
+
+//Main Settings
+unit = 3
+RunSpeed = 20
+ClusterCount = 16
+MinCritCount = 10
+ParticlesOn = false
+ZoomLevel = -1
+autoSave = true
+
+//Screen Size
+
+ScreenMaxX = 1270 * unit
+ScreenMaxY = ScreenMaxX
+
+//Gene Rates
+
+MutationRate = .01
+RottingRate = .0005
+
+BirthRatio = 0.5 // Energy / Max on Birth
+
+//Physical Limitations
+
+MaxTurnRange = 240
+
+//Energy
+
+EnergyRatio = 1000 // Max Energy a body can contain [x .25 - 1] - Limits the max time a creature can go without food
+PlantRatio = EnergyRatio / 3 // How many plants to full~ish
+MeatRatio = PlantRatio * 5  // How much better meat is than Plant
+
+
+//Brain Info
+HiddenCount = 6
+SynapseCount = 24
+OutputCount = 7
+InputNeurons = [19,HiddenCount]
+
+//World Info
+
+World = {
+	Crit: {},
+	Meat: {},
+	Plant:{}
+}
+
+Symbols = [["🌱","🍖"],["🐟","🦀","🦞","🦑"]]
+
+Transform = ["scaleX(-1)","rotate(90deg)","rotate(90deg)","rotate(45deg)"]
+
+//*****************
+// Names
+//*****************
+
+NameWater = [
+	"Basin",
+	"Bay",
+	"Bayou",
+	"Bog",
+	"Canal",
+	"Creek",
+	"Cove",
+	"Delta",
+	"Fjord",
+	"Gulf",
+	"Lagoon",
+	"Lake",
+	"Loch",
+	"River",
+	"Spring",
+	"Pond"]
+	
+NameAdj = [
+	"Wonder",
+	"Deep",
+	"Shallow",
+	"Dark",
+	"Light",
+	"Sunken",
+	"Breeding",
+	"Tropical",
+	"Ancient",
+	"Howling",
+	"Dried",
+	"Florishing",
+	"Damaged",
+	"Great",
+	"Shining",
+	"Flooded"]
+	
+NameObj = [
+	"Coral",
+	"Reef",
+	"Pearl",
+	"Wind",
+	"Cliff",
+	"Water",
+	"Edge",
+	"Tide",
+	"Moon",
+	"Blood",
+	"Chill",
+	"Sand",
+	"Ruins",
+	"Cloud",
+	"Root",
+	"Grave"]
+
+function Name(Seed){
+if (Seed == undefined) {Seed = genRanHex(4)}
+i = 0
+
+	if(Seed == "0000"){return "New Roceania"}
+
+	switch(valHex(Seed[i++])%4) {
+	  case 0:
+		return NameAdj[valHex(Seed[i++])] + " " + NameWater[valHex(Seed[i++])]
+		break;
+	  case 1:
+		return NameWater[valHex(Seed[i++])] + " " + NameAdj[valHex(Seed[i++])]+ NameObj[valHex(Seed[i++])]  
+		break;
+	  case 2:
+		return NameObj[valHex(Seed[i++])] + NameWater[valHex(Seed[i++])]
+		break;
+	  default:
+		return NameAdj[valHex(Seed[i++])] + " " + NameWater[valHex(Seed[i++])]+ NameObj[valHex(Seed[i++])]  
+	}
+
+
+}
+
+//*****************
+// Particles
+// https://codepen.io/Mamboleoo/pen/JjdXPgR
+//*****************
+
+function Hurt(e) {
+	let amount = 4;
+    for (let h = 0; h < amount; h++) {
+      createParticle(Math.floor(e.X)-window.scrollX*(2**ZoomLevel), Math.floor(e.Y)-window.scrollY*(2**ZoomLevel),"hurt");
+    }
+}
+
+function BreedSparkle(e){
+	let amount = 3;
+    for (let h = 0; h < amount; h++) {
+      createParticle(Math.floor(e.X)-window.scrollX*(2**ZoomLevel), Math.floor(e.Y)-window.scrollY*(2**ZoomLevel),"dna");
+    }
+}
+
+function DeadSparkle(e){
+	let amount = 3;
+    for (let h = 0; h < amount; h++) {
+      createParticle(Math.floor(e.X)-window.scrollX*(2**ZoomLevel), Math.floor(e.Y)-window.scrollY*(2**ZoomLevel),"dead");
+    }
+}
+
+
+function createParticle (x, y, type) {
+	if(ParticlesOn && (!(isNaN(x))&&!(isNaN(y)))){
+	  const particle = document.createElement('particle');
+	  document.getElementById("world").appendChild(particle);
+	  let width = Math.floor(Math.random() * 30 + 8);
+	  let height = width;
+	  let destinationX = (Math.random() - 0.5) * 200;
+	  let destinationY = (Math.random() - 0.5) * 200;
+	  let rotation = Math.random() * 520;
+	  let delay = Math.random() * 200;
+	  
+		switch (type) {
+			case 'hurt':
+				var color = `hsl(${(Math.random()-.5) * 30 + 0}, 70%, 50%)`;
+				particle.style.boxShadow = `0 0 ${Math.floor(Math.random() * 10 + 10)}px ${color}`;
+				particle.style.background = color;
+				particle.style.borderRadius = '50%';
+				width = height = Math.random() * 5 + 4;
+				break;
+			 case 'dead':
+			 case 'dna':
+				particle.innerHTML = ((type=="dna")?'🧬':'💀');
+				particle.style.fontSize = `${Math.random() * 24 + 10}px`;
+				width = height = 'auto';
+				break;
+		}
+				
+	  particle.style.width = `${width}px`;
+	  particle.style.height = `${height}px`;
+	  const animation = particle.animate([
+		{
+		  transform: `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(0deg)`,
+		  opacity: 1
+		},
+		{
+		  transform: `translate(-50%, -50%) translate(${x + destinationX}px, ${y + destinationY}px) rotate(${rotation}deg)`,
+		  opacity: 0
+		}
+	  ], {
+		duration: Math.random() * 400 + 600,
+		easing: 'cubic-bezier(0, .9, .57, 1)',
+		delay: delay
+	  });
+	  animation.onfinish = removeParticle;
+	}
+}
+
+function removeParticle (e) {
+  e.srcElement.effect.target.remove();
+}
+
+//*****************
+//  INTRO SCREEN
+//  https://codepen.io/alvarotrigo/pen/xxLvyOG
+//*****************
+
+function SetIntro(){
+	NewroName = "Newro Oceania"
+	for(i=0;i<NewroName.length;i++){
+		holderHTML = document.createElement('span')
+		holderHTML.innerHTML = NewroName[i]
+		holderHTML.setAttribute("style","--i:"+i)
+		
+		document.getElementById("nameholder").appendChild(holderHTML)
+	}
+}
+
+
+//*****************
+//  BIO FUNCTIONS
+//*****************
+
+function Sense(SearchingCrit){
+	
+	i=0;
+	while(i < Object.keys(World.Crit).length){
+		key = Object.keys(World.Crit)[i]
+		if ((key != SearchingCrit.ID) && World.Crit[key.ID] != undefined && (DistanceTo(World.Crit[key],SearchingCrit) < SearchingCrit.Perception * SearchingCrit.Size * unit)) {
+			return {Strength: [...Array(3)].map((e,i) => World.Crit[key].Signal[i]*100/DistanceTo(World.Crit[key],SearchingCrit)**2), Angle: (closestAngle(0,AngleTo( SearchingCrit,World.Crit[key]) - closestAngle(0,SearchingCrit.Direction)))/180}
+			break
+		}
+		i++
+	}
+	return {Strength: [0,0,0], Angle: 0}
+}
+	
+
+function Look(SearchingCrit){
+//	Food = ["Plant","Meat"]
+	holderLook = [[0,0],[0,0],[0,0],[0,0],[0,0]]  // Plant | Meat | Other | Self
+	
+	// Find Food
+	Area.Food[SearchingCrit.Sector[0]][SearchingCrit.Sector[1]].forEach((key) => {
+		if ((DistanceTo(SearchingCrit,key) < SearchingCrit.ViewDepth*SearchingCrit.Size*unit) && ((closestAngle(0,AngleTo( SearchingCrit,key ) - closestAngle(0,SearchingCrit.Direction)))**2 < (SearchingCrit.ViewAngle/2)**2 )){
+			holderLook[((key.Type=="Plant")?0:1)][0] = unit/DistanceTo(SearchingCrit,key) 															 //Proximity
+			holderLook[((key.Type=="Plant")?0:1)][1] = (closestAngle(0,AngleTo( SearchingCrit,key ) - closestAngle(0,SearchingCrit.Direction)))/180 // Angle
+		}
+	})
+
+	// Find Other Creatures
+	Area.Crit[SearchingCrit.Sector[0]][SearchingCrit.Sector[1]].forEach((key) => {
+//		console.log(key.ID)
+//		console.log(key)
+		if ((key.ID != SearchingCrit.ID) && (World.Crit[key.ID]!=undefined) && ((DistanceTo(SearchingCrit,World.Crit[key.ID]) < SearchingCrit.ViewDepth*SearchingCrit.Size*unit) && ((closestAngle(0,AngleTo( SearchingCrit,World.Crit[key.ID] ) - closestAngle(0,SearchingCrit.Direction)))**2 < (SearchingCrit.ViewAngle/2)**2 ))){
+			holderLook[4][0] = Math.sin(Math.PI*0.5*(SearchingCrit.Species - key.Species))
+			holderLook[4][1] = World.Crit[key.ID].Aggro
+			holderLook[2+((SearchingCrit.Species == key.Species)?1:0)][0] = unit/DistanceTo(SearchingCrit,World.Crit[key.ID]) 															 //Proximity
+			holderLook[2+((SearchingCrit.Species == key.Species)?1:0)][1] = (closestAngle(0,AngleTo( SearchingCrit,World.Crit[key.ID] ) - closestAngle(0,SearchingCrit.Direction)))/180 // Angle
+		} 
+	})
+	
+
+	return holderLook
+}
+
+function Think(Creature){
+
+// INPUT - SELF [0]																					 [              SIGNAL				  ]
+// [       PLANT       ] [       MEAT      ] [      SELF      ] [      CRITS      ] [ CLOSEST CRIT ] [  RED  ] [ GREEN ] [ BLUE ] [ ANGLE ]
+// [ Proximity , Angle , Proximity , Angle , Proximity , Angle , Proximity , Angle ,  Type, Aggro,    Strength, Strength, Strength, Angle , Health, Speed, Chronometer, Random, Split ]
+if(Creature!=undefined){
+//	console.log(Creature)
+	CritSense = Sense(Creature)
+	CritLook = Look(Creature)
+
+	tempInput = [[CritLook[0][0],CritLook[0][1],CritLook[1][0],CritLook[1][1],CritLook[2][0],CritLook[2][1],CritLook[3][0],CritLook[3][1],CritLook[4][0],CritSense.Strength[0],CritSense.Strength[1],CritSense.Strength[2],CritSense.Angle,Creature.Energy[0]/Creature.Energy[1],Creature.Speed[0]/Creature.Speed[1],Math.log(Creature.Counter/Creature.CounterGene),Math.random(),Creature.Split[0]/Creature.Split[1]],Creature.Brain.Memory]
+
+// OUTPUT - SELF [0]
+// [ SPEED , TURN ANGLE , RESET COUNTER , SIGNAL RED , SIGNAL GREEN , SIGNAL BLUE , AGGRO]
+
+	tempOutput = [Array(OutputCount).fill(0),Array(HiddenCount).fill(0)]
+	
+// SYNAPSES
+// [ FROM NEURON , FROM HIDDEN, TO NEURON , TO HIDDEN , WEIGHT ]
+	
+	Creature.Brain.Synapses.forEach(Synapse => tempOutput[Synapse.ToHidden][Synapse.ToNeuron] += tempInput[Synapse.FromHidden][Synapse.FromNeuron]*Synapse.Weight);
+	
+	for (i=0; i< HiddenCount; i++){
+		tempOutput[1][i] = Squash(Creature.Brain.Type[i],tempOutput[1][i]+Creature.Brain.Bias[i])
+	}
+	for (i=0; i< OutputCount; i++){
+		tempOutput[0][i] = Squash(Creature.Brain.Type[HiddenCount+i],tempOutput[0][i]+Creature.Brain.Bias[HiddenCount+i])
+	}
+	
+	
+	Creature.Direction = closestAngle(Creature.Direction, Creature.Direction+(Creature.MaxTurn*tempOutput[0][1]))
+	document.getElementById(Creature.ID).style.transform = "rotate("+Creature.Direction+"deg)"
+	
+	Creature.Speed[0] = tempOutput[0][0]*Creature.Speed[1]
+	Creature.Aggro = tempOutput[0][6]
+	
+	Creature.X += Creature.Speed[0]*unit*Math.cos(Creature.Direction*Math.PI/180)
+	Creature.Y += Creature.Speed[0]*unit*Math.sin(Creature.Direction*Math.PI/180)
+	
+	Place(Creature)
+
+	//Emit Signal
+	Creature.Signal = [tempOutput[0][3],tempOutput[0][4],tempOutput[0][5]]
+	document.getElementById("Signal"+Creature.ID).style.color = "rgba("+(tempOutput[0][3]*255)+","+(tempOutput[0][4]*255)+","+(tempOutput[0][5]*255)+","+Math.max((tempOutput[0][3]*255),(tempOutput[0][4]*255),(tempOutput[0][5]*255))+")"
+	
+	
+	Creature.Counter = ((tempOutput[0][2]<Creature.Anxiety)?1:Creature.Counter+1)
+	Creature.Brain.Memory = tempOutput[1]
+	
+	// Attack
+	
+
+	Area.Crit[Creature.Sector[0]][Creature.Sector[1]].forEach((key) => {
+		if ((key.ID != Creature.ID) && World.Crit[key.ID] && (DistanceTo(World.Crit[key.ID],Creature) <= 0)) {
+			Hurt(World.Crit[key.ID])
+		
+			Damage = Math.min(Creature.Size * 100 * Creature.Aggro**2,World.Crit[key.ID].Energy[0])
+//			console.log("Damage: "+Damage)
+			Waste += Damage
+			World.Crit[key.ID].Energy[0] -= Damage
+			if (World.Crit[key.ID].Energy[0] <= 0){
+				DeadSparkle(key)
+				Spawn("Meat",World.Crit[key.ID])
+				Waste += World.Crit[key.ID].Split[0]
+				document.getElementById(World.Crit[key.ID].ID).remove()
+				delete World.Crit[key.ID]
+			}
+		}
+	})
+	
+	// Eat Food
+
+	Area.Food[Creature.Sector[0]][Creature.Sector[1]].forEach((key) => {
+		if ((World[key.Type][key.ID]!=undefined) && DistanceTo(Creature,World[key.Type][key.ID]) <=0 ){
+			EnergyToSplit = (World.Crit[Creature.ID].Energy[1] - World.Crit[Creature.ID].Energy[0]) + (World.Crit[Creature.ID].Split[1] - World.Crit[Creature.ID].Split[0]) // Max needed energy
+			BiteSize = Math.min(World[key.Type][key.ID].Size,Creature.Size * 0.5 * (1 + Creature.Aggro*0.5), EnergyToSplit/((key.Type=="Plant")?PlantRatio:MeatRatio))
+			if (BiteSize >= World[key.Type][key.ID].Size){
+				document.getElementById(key.ID).remove()
+				delete World[key.Type][key.ID]
+			} else {
+				World[key.Type][key.ID].Size -= BiteSize
+				holderHTML = document.getElementById(key.ID)
+				holderHTML.style.width =  (World[key.Type][key.ID].Size*unit+5) +"px"
+				holderHTML.style.height =  holderHTML.style.width
+				holderHTML.style.fontSize = (World[key.Type][key.ID].Size*unit*2.25)+"px"					
+			}
+			
+			Digest = [(-1.15)* Creature.Diet**2 + 1, (-1.05) * Creature.Diet**2 + (2.1 * Creature.Diet) - 0.05]
+			World.Crit[Creature.ID].Energy[0] =  World.Crit[Creature.ID].Energy[0] + (BiteSize * ((key.Type=="Plant")?PlantRatio:MeatRatio) * Digest[((key.Type=="Plant")?0:1)])
+			Waste += (BiteSize * ((key.Type=="Plant")?PlantRatio:MeatRatio) * (1 - Digest[((key.Type=="Plant")?0:1)]))
+			
+			if (World.Crit[Creature.ID].Energy[0] > World.Crit[Creature.ID].Energy[1]){
+				World.Crit[Creature.ID].Split[0] =  World.Crit[Creature.ID].Split[0] + World.Crit[Creature.ID].Energy[0] - Creature.Energy[1]
+				World.Crit[Creature.ID].Energy[0] = Creature.Energy[1]
+//					console.log(World.Crit[Creature.ID].Split[0]/World.Crit[Creature.ID].Split[1])
+			}
+			
+			if (World.Crit[Creature.ID].Split[0] >= (0.995*Creature.Split[1])){
+//					console.log("Birth "+Creature.ID)
+				BreedSparkle(Creature)
+				Spawn("Crit",Creature)
+				World.Crit[Creature.ID].Split[0] = 0
+				World.Crit[Creature.ID].Energy[0] = BirthRatio * World.Crit[Creature.ID].Energy[1]
+			}
+			
+		}
+	})
+	
+//	Metabolism = ((((Creature.Size+5)/10)**3) * (((Creature.Speed[0])/5)**2)*1.25 + ((Creature.ViewAngle/60 + 5)/10 * (((Creature.ViewDepth+5)/10)**2)) + (((Creature.Perception+5)/10)**3) + Creature.Size*Creature.Aggro)
+	Metabolism = ((((Creature.Size+5)/10)**3) * ((2*(Creature.Speed[0])/5)**2)*1.25 + ((Creature.ViewAngle/60 + 5)/10 * (((Creature.ViewDepth+5)/10)**2)) + (((Creature.Perception+5)/10)**3) + Creature.Size*Creature.Aggro)
+	World.Crit[Creature.ID].Energy[0] =  World.Crit[Creature.ID].Energy[0] - Metabolism
+	Waste += Metabolism
+	if (World.Crit[Creature.ID].Energy[0] <= 0 || isNaN(World.Crit[Creature.ID].Energy[0])){
+		DeadSparkle(Creature)
+		Spawn("Meat",Creature)
+		Waste += World.Crit[Creature.ID].Split[0]
+		document.getElementById(Creature.ID).remove()
+		delete World.Crit[Creature.ID]
+	}				
+
+}
+}
+
+Segs = 6
+Area = {
+	Food: [...Array(Segs)].map(() => [...Array(Segs)].map(() => [] ) ),
+	Crit: [...Array(Segs)].map(() => [...Array(Segs)].map(() => [] ) )
+}
+
+
+function Segment(){
+	// Constants
+	Area = {
+		Food: [...Array(Segs)].map(() => [...Array(Segs)].map(() => [] ) ),
+		Crit: [...Array(Segs)].map(() => [...Array(Segs)].map(() => [] ) )
+	}
+	
+	Object.keys(World).forEach((Type) => {
+		Object.keys(World[Type]).forEach((key) => {
+			if(World[Type][key]!=undefined){
+				aX = Math.floor(World[Type][key].X*Segs/ScreenMaxX)
+				aY = Math.floor(World[Type][key].Y*Segs/ScreenMaxY)
+//				console.log([aX,aY,World[Type][key],Type])
+				if(!isNaN(aX)&&!isNaN(aY)&&World[Type][key]!=undefined&&Type!=undefined){Area[((Type=="Crit")?"Crit":"Food")][aX][aY].push(World[Type][key])
+				if(Type=="Crit"){World.Crit[key]["Sector"] = [aX,aY]}}
+			}
+		})
+	})
+}
+
+function Place(Item){
+
+	Item.X = (Item.X+ScreenMaxX)%ScreenMaxX
+	Item.Y = (Item.Y+ScreenMaxY)%ScreenMaxY
+	
+	htmlSpan = document.getElementById(Item.ID)
+	htmlSpan.style.top  = (Item.Y-(Item.Size*unit)/2)+"px"
+	htmlSpan.style.left = (Item.X-(Item.Size*unit)/2)+"px"
+	
+	if (Item.Type == "Plant") 	htmlSpan.style.filter = "hue-rotate("+Math.random()*45+"deg) brightness("+(1+(Math.random()-0.5)*0.2)+")"
+	if (Item.Direction != undefined) 	htmlSpan.style.transform = "rotate("+Item.Direction+"deg)"
+}
+
+
+function Spawn(SpawnType,SpawnSeed){
+
+	// Generate ID & Generic Holder
+	ID = genRanHex(6)
+	holderSpawn = {
+		ID: ID,
+		Type: SpawnType,
+		X: Math.random()*ScreenMaxX,
+		Y: Math.random()*ScreenMaxY,
+		Size: Math.random()+1.5
+	}
+	
+	// If growing from Waste, have a certain size
+	if (SpawnSeed != undefined) {holderSpawn.Size = SpawnSeed.Size}
+	
+	// Test Cluster Spawn Plants
+	if(SpawnType == "Plant") {
+		D = Math.random()*360
+		C = Math.floor(Math.random()*Clusters.length)
+		L = Math.random()*Clusters[C][2]
+		holderSpawn.X = Clusters[C][0]+L*Math.sin(D*Math.PI/180)
+		holderSpawn.Y = Clusters[C][1]+L*Math.cos(D*Math.PI/180)
+	}
+	
+	// If Spawning Meat from Dead Animal, keep Position and Size
+	if (SpawnType == "Meat" && SpawnSeed != undefined) {
+		holderSpawn = {
+			...holderSpawn,
+			X: SpawnSeed.X,
+			Y: SpawnSeed.Y,
+			Size: SpawnSeed.Size
+			
+		}
+	}
+	
+	// Creatures
+
+	// 🧬🧬🧬🧬🧬🧬
+	//    GENOME  
+	// 🧬🧬🧬🧬🧬🧬
+	
+	// Species  | Size | Color | Carnivore | Speed | View Angle | View Depth | Perception | Anxiety | Counter |   Biases   |  Types | Synapses
+	//   🧬     | 🧬🧬 | 🧬 🧬 |   🧬 🧬   | 🧬 🧬 |    🧬 🧬   |    🧬 🧬   |    🧬 🧬   |  🧬 🧬  |  🧬 🧬  | [H+O] 🧬🧬 | [H] 🧬 | [S] 6🧬
+	
+	if (SpawnType == "Crit"){
+		DNA = ((SpawnSeed != undefined)?SpawnSeed.DNA:genRanHex(1+2*9+2*(HiddenCount+OutputCount)+HiddenCount+6*SynapseCount))
+		
+		
+		// MUTATIONS
+		for (i=0;i<DNA.length;i++){
+			if(Math.random()< MutationRate) DNA = DNA.replaceAt(i,genRanHex(1))  
+		}
+		
+		// !! FIX FOR ZERO BIAS ON NON-BORN OUTPUT & TWO BASIC INSTINCTS
+		if (SpawnSeed == undefined) {
+			for (i=0; i < OutputCount*2; i++){
+				DNA = DNA.replaceAt(19+HiddenCount*2+i,["8","0"][i%2])
+			}
+			
+			for (i=0; i < 4; i++){
+				DNA = DNA.replaceAt(1+2*9+2*(HiddenCount+OutputCount)+HiddenCount+i,["0","0",(valHex(genRanHex(1))%4)*2,"0"][i])
+				DNA = DNA.replaceAt(1+2*9+2*(HiddenCount+OutputCount)+HiddenCount+6+i,["0","0",(valHex(genRanHex(1))%4)*2+1,"1"][i])
+			}
+		}
+
+		i = 0
+		Size = valHex(DNA[i++]+DNA[i++])/256*4+1
+		
+		//Apply Characteristics
+		holderSpawn = {
+			...holderSpawn,
+			DNA: DNA,
+			Species: valHex(DNA[i++])%4,
+			Size: Size,
+			Color: valHex(DNA[i++]+DNA[i++])*360/256,
+			Diet: valHex(DNA[i++]+DNA[i++])/256,
+			Speed: [0,valHex(DNA[i++]+DNA[i++])/256*4+1], 
+			ViewAngle: (valHex(DNA[i++]+DNA[i++])/256*4+1)*60,
+			ViewDepth: valHex(DNA[i++]+DNA[i++])/256*4+1,
+			Perception: valHex(DNA[i++]+DNA[i++])/256*4+1,
+
+			Anxiety: valHex(DNA[i++]+DNA[i++])/256,
+			CounterGene: valHex(DNA[i++]+DNA[i++])+1,
+
+			Energy: [BirthRatio*EnergyRatio*((Size+5)/10)**3,EnergyRatio*((Size+5)/10)**3],
+			MaxTurn: (MaxTurnRange/Size)/2,
+			
+			Split: [0,Size*MeatRatio],
+			Aggro: 0,
+			Signal: [0,0,0],
+			Counter: 1,
+			Direction: Math.random()*360,
+			Generation: ((SpawnSeed == undefined)?1:SpawnSeed.Generation+1),
+			Brain: {
+				Memory: Array(HiddenCount).fill(0),
+				Bias: [...Array(HiddenCount+OutputCount)].map(() => (valHex(DNA[i++]+DNA[i++])/32-4)) ,
+				Type: [...Array(HiddenCount)].map(() => (valHex(DNA[i++])%8)).concat([0,1,0,0,0,0,0]) ,  //!! FIX OUTPUT NODES
+				Synapses: []
+			}
+		}
+
+		for (j=0; j < SynapseCount; j++){
+			tTH = valHex(DNA[i++])%2
+			tFH = valHex(DNA[i++])%2
+			holderSpawn.Brain.Synapses.push({
+				FromHidden: tFH, 
+				FromNeuron: valHex(DNA[i++])%InputNeurons[tFH],
+				ToHidden: tTH,
+				ToNeuron: valHex(DNA[i++])%[OutputCount,HiddenCount][tTH],
+				Weight: valHex(DNA[i++]+DNA[i++])/32-4,
+			})
+		}	
+	}
+
+	World[SpawnType][ID] = holderSpawn
+
+	//Create and Prepare HTML Container
+	holderHTML = document.createElement('span')
+	holderHTML.innerHTML = ((holderSpawn.Species != undefined)?"<span class='signal' id='Signal"+holderSpawn.ID+"'></span>":"")+"<span "+ ((holderSpawn.Species != undefined)?"style='top: -50%; left: -50%;transform: "+Transform[holderSpawn.Species]+"; filter: hue-rotate("+holderSpawn.Color+"deg);' ":"") +"'>"+((holderSpawn.Species != undefined)?Symbols[1][holderSpawn.Species]:Symbols[0][((SpawnType == "Meat")?1:0)])+"</span>"
+	holderHTML.setAttribute("id",holderSpawn.ID)
+
+	if(SpawnType=="Crit"){holderHTML.setAttribute("onClick","displayID='"+holderSpawn.ID+"';displayData('"+holderSpawn.ID+"')")}
+	
+	holderHTML.style.width =  (holderSpawn.Size*unit+5) +"px"
+	holderHTML.style.height =  holderHTML.style.width
+	holderHTML.style.fontSize = holderSpawn.Size*unit*2.25+"px"
+
+	document.getElementById("world").appendChild(holderHTML)
+//	document.body.appendChild(holderHTML)
+	Place(holderSpawn)
+}
+
+function test(){
+	Array(1800).fill(0).forEach(() => {Spawn("Plant")})
+	Array(40).fill(0).forEach(() => {Spawn("Crit")})
+}
+
+function RotMeat(){
+	Object.keys(World.Meat).forEach(key => {
+		Rot = World.Meat[key].Size * RottingRate;
+		World.Meat[key].Size -= Rot
+		Waste += (Rot * MeatRatio)
+		document.getElementById(key).style.width 	= (World.Meat[key].Size*unit+5) +"px"
+		document.getElementById(key).style.height	= (World.Meat[key].Size*unit+5) +"px"
+		document.getElementById(key).style.fontSize = World.Meat[key].Size*unit*2.25+"px"
+		
+		if(World.Meat[key].Size < 1){
+			document.getElementById(key).remove()
+			delete World.Meat[key]
+		}
+
+	});
+}
+
+FixPopulation = 50
+PopulationRate = PlantRatio/2
+
+function RunWorld(){
+
+	
+//	try {
+		Segment()
+		
+		Population = 0
+		Object.keys(World.Crit).forEach(key => {
+			Think(World.Crit[key]);
+			Population++
+		});
+
+		RotMeat()
+
+		if (Population < FixPopulation){	Waste = Waste + PopulationRate }
+		if (Population > FixPopulation){	Waste = Waste - PopulationRate }
+
+
+		if (Waste > (PlantRatio*1.5)){
+			WasteSpawn = { Size: ((Waste/PlantRatio>=2.5)?1.5+Math.random():Waste/PlantRatio)}
+			Spawn("Plant",WasteSpawn)
+			Waste -= WasteSpawn.Size*PlantRatio
+		}
+		if (Population < MinCritCount){
+			Spawn("Crit")
+		}
+		
+		if(autoSave){save()}
+		if(displayID!=""){displayData(displayID)}
+
+		if(RunSpeed!=0){
+			running = setTimeout(RunWorld, RunSpeed);
+		}
+//	} catch{
+//		if(RunSpeed!=0){setTimeout(RunWorld, RunSpeed);}
+//	}
+}
+
+function Rename(newname){
+	if(newname == undefined){NewroName = prompt("Enter island name:", NewroName)}
+	else{NewroName = newname}
+	
+	if (NewroName != null) {
+		if(NewroName == "") {NewroName = Name()}
+	  document.getElementById("name").innerHTML = ""
+		for(i=0;i<NewroName.length;i++){
+			holderHTML = document.createElement('span')
+			holderHTML.innerHTML = NewroName[i]
+			holderHTML.setAttribute("style","--i:"+i)
+			
+			document.getElementById("name").appendChild(holderHTML)
+		}
+	  
+	}
+}
+
+function Zoom(z){
+	ZoomLevel += z
+	if(z==0) ZoomLevel = -1
+//	document.getElementById("water").style.transform = "rotate(180deg) scale("+2**ZoomLevel+")"
+	document.getElementById("world").style.transform = "scale("+2**ZoomLevel+")"
+}
+
+document.addEventListener("keydown", function(event) {
+  switch (event.key) {
+    case "+":
+      Zoom(.5);
+      break;
+    case "-":
+      Zoom(-.5);
+      break;
+    case "0":
+      Zoom(0);
+      break;
+  }
+});
+
+function Start(){
+
+	document.getElementById("intro").style.visibility = "hidden";
+	document.getElementById("intro").style.opacity = 0;
+	document.getElementById("intro").style.transition = "visibility 0s 1s, opacity 1s linear";
+	
+	
+	document.getElementById("world").style.visibility = "hidden";
+	document.getElementById("world").style.opacity = 0;
+
+	document.getElementById("water").style.display = "none";
+	Zoom(0);
+
+	setTimeout(function(){
+		NewroName = Name()
+		for(i=0;i<NewroName.length;i++){
+			holderHTML = document.createElement('span')
+			holderHTML.innerHTML = NewroName[i]
+			holderHTML.setAttribute("style","--i:"+i)
+			
+			document.getElementById("name").appendChild(holderHTML)
+		}
+		
+
+		test()
+		document.getElementById("water").style.width = ScreenMaxX + "px"
+		document.getElementById("water").style.height = ScreenMaxY + "px"
+		
+		document.getElementById("world").style.display = "block";
+		document.getElementById("world").style.visibility = "visible";
+		document.getElementById("world").style.opacity = 1;
+		document.getElementById("world").style.transition = "opacity 1s linear";
+
+		document.getElementById("intro").style.display = "none";
+	
+
+		setTimeout(RunWorld, RunSpeed);
+		
+	}, 1000);
+
+	
+}
+
+SetIntro()
+
+Clusters = [...Array(ClusterCount)].map(() => [Math.random()*ScreenMaxX,Math.random()*ScreenMaxY,(Math.random()*0.5+1)*100*unit])
+
+Waste = 0
+
+</script>
+
+</html>
